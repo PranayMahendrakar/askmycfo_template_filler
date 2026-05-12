@@ -1,0 +1,338 @@
+{
+  "_comment": "Default rule set, derived line-by-line from the user's 'Input Automation Test Requirement' template doc. Every formula here corresponds 1:1 to a row in his doc. The dictionary buckets in his bs_keywords.csv are coarse enough that most rules are 1-operand (e.g. 'Trade Payables' covers MSME + Others + outstanding-dues sub-rows; the rule engine sums them automatically).",
+  "Share Capital": {
+    "section": "Networth",
+    "operands": [
+      {
+        "pattern": "share_capital",
+        "op": "+"
+      }
+    ]
+  },
+  "Retained Earnings": {
+    "section": "Networth",
+    "operands": [
+      {
+        "pattern": "retained_earnings",
+        "op": "+"
+      }
+    ]
+  },
+  "General Reserves & Surplus": {
+    "section": "Networth",
+    "operands": [
+      {
+        "pattern": "reserves_and_surplus",
+        "op": "+"
+      }
+    ]
+  },
+  "Other Equity": {
+    "section": "Networth",
+    "operands": [
+      {
+        "pattern": "other_equity",
+        "op": "+"
+      }
+    ]
+  },
+  "Accounts Payable": {
+    "section": "Current Liabilities",
+    "operands": [
+      {
+        "pattern": "trade_payables",
+        "op": "+"
+      }
+    ]
+  },
+  "Provisions": {
+    "section": "Current Liabilities",
+    "operands": [
+      {
+        "pattern": "provisions_current",
+        "op": "+"
+      }
+    ]
+  },
+  "Short term borrowings": {
+    "section": "Current Liabilities",
+    "operands": [
+      {
+        "pattern": "borrowings_current",
+        "op": "+"
+      }
+    ]
+  },
+  "Other Current Liabilities": {
+    "section": "Current Liabilities",
+    "operands": [
+      {
+        "pattern": "other_current_liabilities",
+        "op": "+"
+      },
+      {
+        "pattern": "deferred_tax_liabilities",
+        "op": "+"
+      }
+    ]
+  },
+  "Other Financial Liabilities (Current)": {
+    "section": "Current Liabilities",
+    "operands": [
+      {
+        "pattern": "lease_liabilities_current",
+        "op": "+"
+      },
+      {
+        "pattern": "other_financial_liab_current",
+        "op": "+"
+      }
+    ]
+  },
+  "Long Term borrowings": {
+    "section": "Non-Current Liabilities",
+    "operands": [
+      {
+        "pattern": "borrowings_noncurrent",
+        "op": "+"
+      }
+    ]
+  },
+  "Provision (Non-Current)": {
+    "section": "Non-Current Liabilities",
+    "operands": [
+      {
+        "pattern": "provisions_noncurrent",
+        "op": "+"
+      }
+    ]
+  },
+  "Others (Non-Current Liabilities)": {
+    "section": "Non-Current Liabilities",
+    "operands": [
+      {
+        "pattern": "other_noncurrent_liabilities",
+        "op": "+"
+      },
+      {
+        "pattern": "deferred_tax_liabilities",
+        "op": "+"
+      }
+    ]
+  },
+  "Other Financial Liabilities (Non-Current)": {
+    "section": "Non-Current Liabilities",
+    "operands": [
+      {
+        "pattern": "lease_liabilities_noncurrent",
+        "op": "+"
+      },
+      {
+        "pattern": "other_financial_liab_noncurrent",
+        "op": "+"
+      }
+    ]
+  },
+  "Bank Balance": {
+    "section": "Current Assets",
+    "operands": [
+      {
+        "pattern": "bank_balance",
+        "op": "+"
+      }
+    ]
+  },
+  "Cash & Cash Equivalance": {
+    "section": "Current Assets",
+    "operands": [
+      {
+        "pattern": "cash_and_equivalents",
+        "op": "+"
+      }
+    ]
+  },
+  "Inventory": {
+    "section": "Current Assets",
+    "operands": [
+      {
+        "pattern": "inventories",
+        "op": "+"
+      }
+    ]
+  },
+  "Investments (Current)": {
+    "section": "Current Assets",
+    "operands": [
+      {
+        "pattern": "investments_current",
+        "op": "+"
+      }
+    ]
+  },
+  "Loans (Current)": {
+    "section": "Current Assets",
+    "operands": [
+      {
+        "pattern": "loans_current",
+        "op": "+"
+      }
+    ]
+  },
+  "Accounts Receivable": {
+    "section": "Current Assets",
+    "operands": [
+      {
+        "pattern": "trade_receivables",
+        "op": "+"
+      }
+    ]
+  },
+  "Other Current Assets": {
+    "section": "Current Assets",
+    "operands": [
+      {
+        "pattern": "other_current_assets",
+        "op": "+"
+      }
+    ]
+  },
+  "Other Financial Assets (Current)": {
+    "section": "Current Assets",
+    "operands": [
+      {
+        "pattern": "other_financial_assets_current",
+        "op": "+"
+      }
+    ]
+  },
+  "Fixed Assets": {
+    "section": "Non-Current Assets",
+    "operands": [
+      {
+        "pattern": "ppe_fixed_assets",
+        "op": "+"
+      }
+    ]
+  },
+  "Investments (Non-Current)": {
+    "section": "Non-Current Assets",
+    "operands": [
+      {
+        "pattern": "investments_noncurrent",
+        "op": "+"
+      }
+    ]
+  },
+  "Loans (Non-Current)": {
+    "section": "Non-Current Assets",
+    "operands": [
+      {
+        "pattern": "loans_noncurrent",
+        "op": "+"
+      }
+    ]
+  },
+  "Capital Work-in-Progress": {
+    "section": "Non-Current Assets",
+    "operands": [
+      {
+        "pattern": "capital_wip",
+        "op": "+"
+      }
+    ]
+  },
+  "Other Non-Current Assets": {
+    "section": "Non-Current Assets",
+    "operands": [
+      {
+        "pattern": "other_noncurrent_assets",
+        "op": "+"
+      }
+    ]
+  },
+  "Other Financial Assets (Non-Current)": {
+    "section": "Non-Current Assets",
+    "operands": [
+      {
+        "pattern": "other_financial_assets_noncurrent",
+        "op": "+"
+      }
+    ]
+  },
+  "Defered Tax Assets": {
+    "section": "Non-Current Assets",
+    "operands": [
+      {
+        "pattern": "deferred_tax_assets",
+        "op": "+"
+      }
+    ]
+  },
+  "Revenue": {
+    "section": "P&L",
+    "operands": [
+      {
+        "pattern": "revenue",
+        "op": "+"
+      }
+    ]
+  },
+  "Cost of goods sold": {
+    "section": "P&L",
+    "operands": [
+      {
+        "pattern": "cost_of_goods_sold",
+        "op": "+"
+      }
+    ]
+  },
+  "Employee benefits expense": {
+    "section": "P&L",
+    "operands": [
+      {
+        "pattern": "employee_benefits",
+        "op": "+"
+      }
+    ]
+  },
+  "Interest": {
+    "section": "P&L",
+    "operands": [
+      {
+        "pattern": "finance_costs",
+        "op": "+"
+      }
+    ]
+  },
+  "Depreciation": {
+    "section": "P&L",
+    "operands": [
+      {
+        "pattern": "depreciation",
+        "op": "+"
+      }
+    ]
+  },
+  "Other expenses less other income": {
+    "section": "P&L",
+    "operands": [
+      {
+        "pattern": "other_income",
+        "op": "+"
+      },
+      {
+        "pattern": "other_expenses",
+        "op": "-"
+      }
+    ]
+  },
+  "Taxes": {
+    "section": "P&L",
+    "operands": [
+      {
+        "pattern": "taxes",
+        "op": "+"
+      }
+    ]
+  }
+}

@@ -1,0 +1,396 @@
+{
+  "_comment": "Declarative spec for every pattern. Each pattern resolves into a runtime entry in patterns.json via keyword_store.build_patterns(). The aliases at runtime = (CSV variations under csv_category) UNION extras, after noise filtering. csv_source is one of 'bs', 'pl', or null. section_filter constrains matching to a specific Balance-Sheet section.",
+  "_groups": {
+    "equity":           "Equity / Networth",
+    "current_liab":     "Current Liabilities",
+    "noncurrent_liab":  "Non-Current Liabilities",
+    "current_asset":    "Current Assets",
+    "noncurrent_asset": "Non-Current Assets",
+    "pl":               "Profit & Loss"
+  },
+  "patterns": {
+
+    "share_capital": {
+      "name": "Share Capital",
+      "group": "equity",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Share Capital",
+      "extras": ["equity share capital", "share capital", "issued share capital", "paid up capital", "paid-up share capital", "subscribed and paid up capital", "authorised capital", "subscribed capital"]
+    },
+    "retained_earnings": {
+      "name": "Retained Earnings",
+      "group": "equity",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Retained Earnings",
+      "extras": ["retained earnings", "surplus in statement of profit and loss", "surplus in profit and loss", "balance in profit and loss", "accumulated profit", "accumulated profits"]
+    },
+    "reserves_and_surplus": {
+      "name": "Reserves and Surplus",
+      "group": "equity",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Reserves and Surplus",
+      "extras": ["general reserve", "reserves and surplus", "general reserves and surplus", "general reserves & surplus", "securities premium", "capital reserve", "capital redemption reserve", "debenture redemption reserve", "statutory reserve"]
+    },
+    "other_equity": {
+      "name": "Other Equity",
+      "group": "equity",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Other Equity",
+      "extras": ["other equity", "other components of equity", "equity attributable to owners", "hedging reserve", "cash flow hedge reserve", "foreign currency translation reserve", "fctr", "money received against share warrants", "share application money pending allotment", "equity component of compound financial instruments"]
+    },
+    "non_controlling_interest": {
+      "name": "Non-Controlling Interest",
+      "group": "equity",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Non Controlling Interest",
+      "extras": ["non-controlling interest", "non controlling interest", "minority interest", "nci"]
+    },
+
+    "trade_payables": {
+      "name": "Trade Payables (MSME + Others + Outstanding Dues)",
+      "group": "current_liab",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Trade Payables",
+      "extras": [
+        "trade payables", "trade payable",
+        "trade payables msme", "trade payables-msme", "msme trade payable",
+        "trade payables others", "trade payables-others",
+        "total outstanding dues of micro enterprises and small enterprises",
+        "total outstanding dues of micro",
+        "total outstanding dues of creditors other than micro enterprises and small enterprises",
+        "total outstanding dues of creditors other",
+        "sundry creditors", "accounts payable"
+      ]
+    },
+    "provisions_current": {
+      "name": "Provisions (Current)",
+      "group": "current_liab",
+      "section_filter": "current_liab",
+      "csv_source": "bs",
+      "csv_category": "Provisions Current",
+      "extras": ["short-term provisions", "short term provisions", "current provisions", "provisions (current)", "provisions - current", "provision for warranty", "provision for tax", "provision for gratuity (current)"]
+    },
+    "borrowings_current": {
+      "name": "Borrowings (Current) / Short-Term Borrowings",
+      "group": "current_liab",
+      "section_filter": "current_liab",
+      "csv_source": "bs",
+      "csv_category": "Short Term Borrowings",
+      "extras": ["short-term borrowings", "short term borrowings", "current borrowings", "borrowings (current)", "borrowings - current", "cash credit", "working capital loan", "current maturities of long-term debt", "current maturity of long term debt"]
+    },
+    "other_current_liabilities": {
+      "name": "Other Current Liabilities",
+      "group": "current_liab",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Other Current Liabilities",
+      "extras": ["other current liabilities", "advance from customers", "advances from customers", "contract liabilities", "statutory dues payable", "gst payable", "duties payable", "tds payable", "government grants (current)"]
+    },
+    "deferred_tax_liabilities": {
+      "name": "Deferred Tax Liabilities (Net)",
+      "group": "current_liab",
+      "section_filter": null,
+      "csv_source": null,
+      "csv_category": null,
+      "extras": ["deferred tax liabilities (net)", "deferred tax liabilities", "deferred tax liability", "deferred tax (net)", "net deferred tax liability", "dtl"]
+    },
+    "lease_liabilities_current": {
+      "name": "Lease Liabilities (Current)",
+      "group": "current_liab",
+      "section_filter": "current_liab",
+      "csv_source": "bs",
+      "csv_category": "Lease Liabilities Current",
+      "extras": ["lease liabilities (current)", "current lease liabilities", "lease liability current", "current portion of lease", "finance lease current", "right of use lease current"]
+    },
+    "other_financial_liab_current": {
+      "name": "Other Financial Liabilities (Current)",
+      "group": "current_liab",
+      "section_filter": "current_liab",
+      "csv_source": "bs",
+      "csv_category": "Other Financial Liabilities Current",
+      "extras": ["other financial liabilities (current)", "other current financial liabilities", "current financial liabilities", "unclaimed dividend", "interest accrued and due", "interest accrued but not due", "security deposits payable", "capital creditors", "employee dues payable", "creditors for capital goods"]
+    },
+    "current_tax_liabilities": {
+      "name": "Current Tax Liabilities (Net)",
+      "group": "current_liab",
+      "section_filter": null,
+      "csv_source": null,
+      "csv_category": null,
+      "extras": ["current tax liabilities (net)", "current tax liability (net)", "income tax payable", "provision for income tax (net)", "net current tax liability"]
+    },
+
+    "provisions_noncurrent": {
+      "name": "Provisions (Non-Current)",
+      "group": "noncurrent_liab",
+      "section_filter": "noncurrent_liab",
+      "csv_source": "bs",
+      "csv_category": "Provisions Non Current",
+      "extras": ["long-term provisions", "long term provisions", "non-current provisions", "provisions (non-current)", "provisions - non current", "provision for gratuity (non-current)", "provision for leave encashment"]
+    },
+    "borrowings_noncurrent": {
+      "name": "Borrowings (Non-Current) / Long-Term Borrowings",
+      "group": "noncurrent_liab",
+      "section_filter": "noncurrent_liab",
+      "csv_source": "bs",
+      "csv_category": "Long Term Borrowings",
+      "extras": ["long-term borrowings", "long term borrowings", "non-current borrowings", "borrowings (non-current)", "borrowings - non current", "secured loans", "term loans", "debentures", "bonds", "non-convertible debentures"]
+    },
+    "other_noncurrent_liabilities": {
+      "name": "Other Non-Current Liabilities",
+      "group": "noncurrent_liab",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Other Non Current Liabilities",
+      "extras": ["other non-current liabilities", "other non current liabilities", "other long-term liabilities", "government grants (non-current)", "deferred government grants"]
+    },
+    "lease_liabilities_noncurrent": {
+      "name": "Lease Liabilities (Non-Current)",
+      "group": "noncurrent_liab",
+      "section_filter": "noncurrent_liab",
+      "csv_source": null,
+      "csv_category": null,
+      "extras": ["lease liabilities (non-current)", "non-current lease liabilities", "lease liability non current", "long-term lease liabilities", "finance lease non current", "lease liability (non-current)"]
+    },
+    "other_financial_liab_noncurrent": {
+      "name": "Other Financial Liabilities (Non-Current)",
+      "group": "noncurrent_liab",
+      "section_filter": "noncurrent_liab",
+      "csv_source": "bs",
+      "csv_category": "Other Financial Liabilities Non Current",
+      "extras": ["other financial liabilities (non-current)", "other non-current financial liabilities", "non current other financial liabilities", "long-term security deposits"]
+    },
+
+    "bank_balance": {
+      "name": "Bank Balance (other than C&CE)",
+      "group": "current_asset",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Bank Balance",
+      "extras": ["bank balances other than cash equivalents", "bank balance other than cash", "other bank balances", "earmarked balances", "margin money", "fixed deposits with banks", "deposits with maturity over three months"]
+    },
+    "cash_and_equivalents": {
+      "name": "Cash & Cash Equivalents",
+      "group": "current_asset",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Cash and Cash Equivalents",
+      "extras": ["cash and cash equivalents", "cash & cash equivalents", "cash and bank balances", "cash on hand", "balances with banks in current accounts", "cheques on hand", "drafts on hand"]
+    },
+    "inventories": {
+      "name": "Inventories",
+      "group": "current_asset",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Inventories",
+      "extras": ["inventories", "inventory", "stock-in-trade", "stock in trade", "finished goods", "raw materials", "work in progress", "work-in-progress", "stores and spares"]
+    },
+    "investments_current": {
+      "name": "Investments (Current) + Held for Sale",
+      "group": "current_asset",
+      "section_filter": "current_asset",
+      "csv_source": "bs",
+      "csv_category": "Current Investments",
+      "extras": ["current investments", "short-term investments", "investments (current)", "investments - current", "investments held for sale", "assets held for sale", "mutual funds (current)", "marketable securities"]
+    },
+    "loans_current": {
+      "name": "Loans (Current)",
+      "group": "current_asset",
+      "section_filter": "current_asset",
+      "csv_source": "bs",
+      "csv_category": "Loans Current",
+      "extras": ["short-term loans", "current loans", "loans (current)", "loans - current", "short term loans and advances", "loans receivable - current"]
+    },
+    "trade_receivables": {
+      "name": "Trade Receivables",
+      "group": "current_asset",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Trade Receivables",
+      "extras": ["trade receivables", "trade receivable", "sundry debtors", "accounts receivable", "debtors", "trade receivables - billed", "unbilled revenue"]
+    },
+    "other_current_assets": {
+      "name": "Other Current Assets (+ Current Tax Assets)",
+      "group": "current_asset",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Other Current Assets",
+      "extras": ["other current assets", "current tax assets", "advance tax", "prepaid expenses", "tds receivable", "advance income tax", "balances with government authorities", "gst receivable", "export incentives receivable", "contract assets"]
+    },
+    "other_financial_assets_current": {
+      "name": "Other Financial Assets (Current)",
+      "group": "current_asset",
+      "section_filter": "current_asset",
+      "csv_source": "bs",
+      "csv_category": "Other Financial Assets Current",
+      "extras": ["other financial assets (current)", "other current financial assets", "interest accrued on deposits", "security deposits (current)", "derivative financial instruments (current)"]
+    },
+
+    "ppe_fixed_assets": {
+      "name": "Fixed Assets (PPE + RoU + Goodwill + Intangibles)",
+      "group": "noncurrent_asset",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "PPE Fixed Assets",
+      "extras": [
+        "property, plant and equipment", "property plant and equipment",
+        "tangible assets", "fixed assets - tangible",
+        "right of use", "right-of-use", "rou asset", "rou assets", "right of use assets",
+        "intangible assets", "other intangible assets", "goodwill",
+        "computer equipment", "plant and machinery", "buildings",
+        "freehold land", "leasehold land", "office equipment",
+        "furniture and fixtures", "vehicles"
+      ]
+    },
+    "investments_noncurrent": {
+      "name": "Investments (Non-Current) (Property + Financial + NC Investments)",
+      "group": "noncurrent_asset",
+      "section_filter": "noncurrent_asset",
+      "csv_source": "bs",
+      "csv_category": "Investments Non Current",
+      "extras": [
+        "non-current investments", "long-term investments",
+        "investments (non-current)", "investments - non current",
+        "investment property", "investment properties",
+        "financial assets - investments",
+        "investment in subsidiaries", "investments in subsidiaries",
+        "investment in associates", "investment in joint ventures",
+        "investments in equity instruments", "investments in mutual funds (non-current)",
+        "investments in bonds and debentures"
+      ]
+    },
+    "loans_noncurrent": {
+      "name": "Loans (Non-Current)",
+      "group": "noncurrent_asset",
+      "section_filter": "noncurrent_asset",
+      "csv_source": "bs",
+      "csv_category": "Loans Non Current",
+      "extras": ["non-current loans", "long-term loans", "loans (non-current)", "loans - non current", "long term loans and advances", "financial assets - loans", "loans to related parties (non-current)"]
+    },
+    "capital_wip": {
+      "name": "Capital Work-in-Progress",
+      "group": "noncurrent_asset",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "CWIP",
+      "extras": ["capital work-in-progress", "capital work in progress", "cwip", "assets under construction", "intangible under development", "intangible assets under development"]
+    },
+    "other_noncurrent_assets": {
+      "name": "Other Non-Current Assets",
+      "group": "noncurrent_asset",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Other Non Current Assets",
+      "extras": [
+        "other non-current assets", "other non current assets",
+        "capital advances", "non current tax assets",
+        "biological assets", "biological asset", "biological assets other than bearer plants",
+        "current tax assets (net)", "current tax asset (net)",
+        "prepaid lease rent", "deferred employee compensation",
+        "mat credit entitlement"
+      ]
+    },
+    "other_financial_assets_noncurrent": {
+      "name": "Other Financial Assets (Non-Current)",
+      "group": "noncurrent_asset",
+      "section_filter": "noncurrent_asset",
+      "csv_source": "bs",
+      "csv_category": "Other Financial Assets Non Current",
+      "extras": ["other financial assets (non-current)", "other non-current financial assets", "non current other financial assets", "bank deposits non current", "financial assets - other financial assets", "long-term security deposits", "fixed deposits with maturity over one year"]
+    },
+    "deferred_tax_assets": {
+      "name": "Deferred Tax Assets (Net)",
+      "group": "noncurrent_asset",
+      "section_filter": null,
+      "csv_source": "bs",
+      "csv_category": "Deferred Tax Assets",
+      "extras": ["deferred tax assets (net)", "deferred tax asset (net)", "deferred tax assets", "deferred tax asset", "dta", "net deferred tax asset", "non-current tax assets"]
+    },
+
+    "revenue": {
+      "name": "Revenue (Operations + Trading)",
+      "group": "pl",
+      "section_filter": null,
+      "csv_source": "pl",
+      "csv_category": "Revenue",
+      "extras": ["revenue from operations", "revenue from operation", "income from operations", "revenue from trading", "trading revenue", "sale of traded goods", "sale of products", "sale of services", "sale of goods", "other operating revenue", "other operating income"]
+    },
+    "cost_of_goods_sold": {
+      "name": "Cost of Goods Sold (Materials + Purchases + Inv Changes)",
+      "group": "pl",
+      "section_filter": null,
+      "csv_source": "pl",
+      "csv_category": "Cost of goods sold",
+      "extras": ["cost of materials consumed", "cost of material consumed", "materials consumed", "purchases of stock-in-trade", "purchase of stock-in-trade", "purchases of stock in trade", "purchases of traded goods", "changes in inventories", "changes in inventory", "increase/decrease in inventories", "changes in inventories of finished goods and work-in-progress"]
+    },
+    "employee_benefits": {
+      "name": "Employee Benefits Expense",
+      "group": "pl",
+      "section_filter": null,
+      "csv_source": "pl",
+      "csv_category": "Employee benefits expense",
+      "extras": ["employee benefits expense", "employee benefit expense", "employee cost", "staff cost", "salaries and wages", "salary", "salaries wages and bonus", "contribution to provident and other funds", "gratuity expense", "staff welfare expenses"]
+    },
+    "finance_costs": {
+      "name": "Finance Costs / Interest",
+      "group": "pl",
+      "section_filter": null,
+      "csv_source": "pl",
+      "csv_category": "Interest",
+      "extras": ["finance costs", "finance cost", "interest expense", "interest and finance charges", "borrowing cost", "interest on borrowings", "interest on lease liabilities", "interest on debentures"]
+    },
+    "depreciation": {
+      "name": "Depreciation and Amortisation Expense",
+      "group": "pl",
+      "section_filter": null,
+      "csv_source": "pl",
+      "csv_category": "Depreciation",
+      "extras": ["depreciation and amortisation", "depreciation and amortization", "depreciation & amortisation", "depreciation and amortisation expense", "depreciation", "amortisation", "amortization", "depreciation on tangible assets", "amortisation of intangible assets", "depreciation on right of use"]
+    },
+    "other_income": {
+      "name": "Other Income",
+      "group": "pl",
+      "section_filter": null,
+      "csv_source": null,
+      "csv_category": null,
+      "extras": ["other income", "interest income", "dividend income", "foreign exchange gain", "profit on sale of investments", "gain on disposal of assets", "miscellaneous income", "rental income", "scrap sales"]
+    },
+    "other_expenses": {
+      "name": "Other Expenses",
+      "group": "pl",
+      "section_filter": null,
+      "csv_source": null,
+      "csv_category": null,
+      "extras": ["other expenses", "other expense", "manufacturing expenses", "selling and distribution expenses", "administrative expenses", "rent", "rates and taxes", "insurance", "repairs and maintenance", "travelling and conveyance", "legal and professional charges", "auditor's remuneration", "freight outward", "advertisement and sales promotion", "bank charges"]
+    },
+    "exceptional_items": {
+      "name": "Exceptional Items",
+      "group": "pl",
+      "section_filter": null,
+      "csv_source": null,
+      "csv_category": null,
+      "extras": ["exceptional items", "exceptional item", "exceptional income", "exceptional expense"]
+    },
+    "impairment_loss": {
+      "name": "Impairment Loss",
+      "group": "pl",
+      "section_filter": null,
+      "csv_source": null,
+      "csv_category": null,
+      "extras": ["impairment loss", "impairment of assets", "impairment of goodwill", "provision for impairment"]
+    },
+    "taxes": {
+      "name": "Taxes (Current + MAT + Deferred + Prior)",
+      "group": "pl",
+      "section_filter": null,
+      "csv_source": "pl",
+      "csv_category": "Taxes",
+      "extras": ["current tax", "mat credit entitlement", "mat credit", "mat credit reversal", "deferred tax", "tax for prior periods", "tax of prior periods", "tax of earlier years", "tax for earlier years", "prior period tax", "tax expense", "income tax expense", "deferred tax charge", "deferred tax benefit", "deferred tax income - earlier years", "tax relating to earlier years"]
+    }
+  }
+}

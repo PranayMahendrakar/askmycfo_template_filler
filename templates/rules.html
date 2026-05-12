@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rules — AskMyCFO Template Filler</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..800&family=Manrope:wght@300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_v }}">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">▲</span>
+    <span class="brand-name">AskMyCFO</span>
+    <span class="brand-tag">Template Filler</span>
+  </div>
+  <nav>
+    <a href="{{ url_for('home') }}">Upload</a>
+    <a href="{{ url_for('rules_page') }}" class="active">Rules</a>
+    <a href="{{ url_for('keywords_page') }}">Keywords</a>
+    <a href="{{ url_for('settings_page') }}">Settings</a>
+  </nav>
+</header>
+
+<main class="container">
+
+  <section class="hero rules-hero">
+    <p class="kicker">Step 2</p>
+    <h1>Define how each template field is computed.</h1>
+    <p class="lede">
+      Each rule below says: <em>“to fill the
+      <strong>&lt;template field&gt;</strong> cell, take these source line
+      items from the extracted Excel and combine them with these operators.”</em>
+      Add, edit, reorder, or delete operands. Save when you're happy.
+    </p>
+  </section>
+
+  <div class="rules-toolbar">
+    <div class="toolbar-left">
+      <button id="addRuleBtn" class="btn-secondary">+ Add new rule</button>
+      <button id="resetBtn" class="btn-ghost">Reset to defaults</button>
+    </div>
+    <div class="toolbar-right">
+      <span id="dirty-indicator" class="dirty-pill hidden">Unsaved changes</span>
+      <button id="saveBtn" class="btn-primary">Save all rules</button>
+    </div>
+  </div>
+
+  <div id="status" class="status hidden"></div>
+
+  <div id="ruleListBySection"></div>
+
+</main>
+
+<!-- ────── Template: one rule card ────── -->
+<template id="ruleCardTpl">
+  <article class="rule-card">
+    <header class="rule-card-head">
+      <div>
+        <input type="text" class="rule-target" placeholder="Template field name (e.g. Accounts Payable)">
+        <p class="rule-target-hint">
+          <span class="rule-cell"></span>
+          <span class="rule-section-pill"></span>
+        </p>
+      </div>
+      <div class="rule-actions">
+        <button class="btn-ghost-icon delete-rule" title="Delete this rule">✕</button>
+      </div>
+    </header>
+    <p class="rule-formula"></p>
+    <div class="operand-list"></div>
+    <button class="add-operand-btn">+ Add operand</button>
+  </article>
+</template>
+
+<!-- ────── Template: one operand row ────── -->
+<template id="operandRowTpl">
+  <div class="operand-row">
+    <select class="op-select">
+      <option value="+">+</option>
+      <option value="-">−</option>
+      <option value="*">×</option>
+      <option value="/">÷</option>
+    </select>
+    <select class="pattern-select"></select>
+    <button class="btn-ghost-icon remove-operand" title="Remove operand">✕</button>
+  </div>
+</template>
+
+<!-- ────── Template: section heading ────── -->
+<template id="sectionHeadTpl">
+  <h2 class="section-head"></h2>
+</template>
+
+<script src="{{ url_for('static', filename='rules.js') }}?v={{ static_v }}"></script>
+{% include '_chat_widget.html' %}
+
+</body>
+</html>

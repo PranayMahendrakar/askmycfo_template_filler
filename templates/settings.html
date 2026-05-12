@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — AskMyCFO Template Filler</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..800&family=Manrope:wght@300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_v }}">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">▲</span>
+    <span class="brand-name">AskMyCFO</span>
+    <span class="brand-tag">Template Filler</span>
+  </div>
+  <nav>
+    <a href="{{ url_for('home') }}">Upload</a>
+    <a href="{{ url_for('rules_page') }}">Rules</a>
+    <a href="{{ url_for('keywords_page') }}">Keywords</a>
+    <a href="{{ url_for('settings_page') }}" class="active">Settings</a>
+  </nav>
+</header>
+
+<main class="container">
+
+  <section class="hero rules-hero">
+    <p class="kicker">Settings</p>
+    <h1>OpenAI configuration.</h1>
+    <p class="lede">
+      Used to auto-classify any line items your CSV dictionary doesn't
+      recognise. The key is stored locally in <code>data/ai_config.json</code>
+      and never leaves your machine except in requests you make to
+      <code>api.openai.com</code>. An <code>OPENAI_API_KEY</code> environment
+      variable, if set, takes precedence over this form.
+    </p>
+  </section>
+
+  <div id="status" class="status hidden"></div>
+
+  <section class="card settings-card">
+
+    <div class="field-group">
+      <label for="api_key">OpenAI API key</label>
+      <div class="api-key-row">
+        <input type="password" id="api_key"
+               placeholder="{{ 'sk-…' if not api_key_masked else api_key_masked }}"
+               autocomplete="off">
+        <button type="button" id="toggleKey" class="btn-ghost-icon" title="Show / hide">👁</button>
+      </div>
+      <p class="hint">
+        {% if api_key_from_env %}
+          <strong>OPENAI_API_KEY env var is set</strong> — it overrides this field on every request.
+        {% elif api_key_masked %}
+          Currently stored: <code class="mono">{{ api_key_masked }}</code>.
+          Leave blank to keep it; type a new key to replace.
+        {% else %}
+          No key configured yet.
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="field-group">
+      <label for="model">Model</label>
+      <select id="model">
+        {% for m in supported_models %}
+          <option value="{{ m[0] }}" {% if m[0] == model %}selected{% endif %}>
+            {{ m[1] }} — {{ m[2] }}
+          </option>
+        {% endfor %}
+      </select>
+      <p class="hint">
+        Pick any chat-completions model. <code>gpt-4o-mini</code> is fast and cheap;
+        <code>gpt-4o</code> is more accurate but ~10× the cost per call.
+      </p>
+    </div>
+
+    <div class="field-group">
+      <label for="threshold">Auto-apply confidence threshold</label>
+      <div class="threshold-row">
+        <input type="range" id="threshold" min="0" max="1" step="0.05" value="{{ threshold }}">
+        <span id="thresholdVal" class="mono">{{ threshold }}</span>
+      </div>
+      <p class="hint">
+        Suggestions at or above this confidence are auto-added to your CSV.
+        Lower values trust the AI more (faster onboarding); higher values
+        require stronger signals (fewer false positives). 0.7 is a good default.
+      </p>
+    </div>
+
+    <div class="settings-actions">
+      <button type="button" id="saveBtn" class="btn-primary">Save settings</button>
+      <button type="button" id="testBtn" class="btn-secondary">Test connection</button>
+    </div>
+
+  </section>
+
+  <section class="how">
+    <h2>What the AI does</h2>
+    <p style="margin-top:8px">
+      After the rule engine runs, any rows in the extracted Excel that didn't
+      match a pattern (e.g. <em>"Cash credit from State Bank of India"</em>) get
+      sent to your model along with the catalog of patterns. The model
+      returns its best guess — for example,
+      <code>borrowings_current</code> with confidence 0.92.
+    </p>
+    <p style="margin-top:8px">
+      If the confidence is at or above your threshold and the target pattern
+      has a CSV bucket, the raw label is appended to your
+      <code>bs_keywords.csv</code> or <code>pl_keywords.csv</code>. Next time
+      a report uses the same phrasing, the substring matcher catches it
+      without calling OpenAI at all.
+    </p>
+    <p style="margin-top:8px">
+      Anything below the threshold (or matched to a hand-curated pattern)
+      shows up on the result page as a manual-review item.
+    </p>
+  </section>
+
+</main>
+
+<script>
+  // Show / hide API key
+  document.getElementById("toggleKey").addEventListener("click", () => {
+    const inp = document.getElementById("api_key");
+    inp.type = inp.type === "password" ? "text" : "password";
+  });
+
+  // Threshold live value
+  const thr = document.getElementById("threshold");
+  const thrVal = document.getElementById("thresholdVal");
+  thr.addEventListener("input", () => { thrVal.textContent = parseFloat(thr.value).toFixed(2); });
+
+  function flash(msg, kind = "ok") {
+    const s = document.getElementById("status");
+    s.textContent = msg;
+    s.className = "status " + kind;
+    s.classList.remove("hidden");
+    clearTimeout(window.__t);
+    window.__t = setTimeout(() => s.classList.add("hidden"), 6000);
+  }
+
+  // Save
+  document.getElementById("saveBtn").addEventListener("click", async () => {
+    const body = {
+      api_key: document.getElementById("api_key").value,
+      model:   document.getElementById("model").value,
+      auto_apply_threshold: parseFloat(thr.value),
+    };
+    const r = await fetch("/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const j = await r.json();
+    if (!r.ok || !j.ok) {
+      flash("Save failed: " + (j.error || "unknown"), "error");
+      return;
+    }
+    flash("Saved. Model: " + j.model + ". Threshold: " + j.auto_apply_threshold + ".");
+    document.getElementById("api_key").value = "";
+  });
+
+  // Test
+  document.getElementById("testBtn").addEventListener("click", async () => {
+    flash("Pinging OpenAI…", "ok");
+    try {
+      const r = await fetch("/api/settings/test", { method: "POST" });
+      const j = await r.json();
+      if (!r.ok || j.ok === false) {
+        flash("Test failed: " + (j.error || "unknown"), "error");
+        return;
+      }
+      flash(`✓ ${j.model} replied: "${j.reply}" (${j.tokens_used} tokens used)`, "ok");
+    } catch (e) {
+      flash("Network error: " + e.message, "error");
+    }
+  });
+</script>
+
+</body>
+</html>

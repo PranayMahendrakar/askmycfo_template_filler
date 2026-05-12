@@ -1,0 +1,38 @@
+<!-- Chat widget — included on /result, /rules, /keywords pages.
+     Lives outside .container so it floats. -->
+<div id="chatWidget" class="chat-widget hidden">
+  <div class="chat-head">
+    <div class="chat-title">
+      <span class="chat-spark">✨</span>
+      <strong>AskMyCFO Assistant</strong>
+      <span class="chat-sub mono">edits keywords &amp; rules</span>
+    </div>
+    <div class="chat-head-actions">
+      <button id="chatClear" class="btn-ghost-icon" title="Clear conversation">⟲</button>
+      <button id="chatClose" class="btn-ghost-icon" title="Hide">✕</button>
+    </div>
+  </div>
+  <div class="chat-body" id="chatBody">
+    <div class="chat-empty">
+      <p>I can edit your keyword dictionary and rule set in plain English.</p>
+      <p class="hint">Try things like:</p>
+      <ul>
+        <li><em>"Add '(b) Provisions' as a keyword for provisions current"</em></li>
+        <li><em>"Create a rule called EBITDA = Revenue − Cost of goods sold − Employee benefits − Depreciation − Other expenses + Other income"</em></li>
+        <li><em>"What patterns are in the equity section?"</em></li>
+        <li><em>"Remove 'foo' from trade payables keywords"</em></li>
+      </ul>
+    </div>
+  </div>
+  <form id="chatForm" class="chat-form">
+    <textarea id="chatInput" placeholder="Ask the assistant…" rows="2"></textarea>
+    <button type="submit" class="btn-primary chat-send" title="Send (Enter)">↑</button>
+  </form>
+</div>
+
+<button id="chatOpen" class="chat-open-btn" title="Open assistant">
+  <span class="chat-spark">✨</span>
+  Assistant
+</button>
+
+<script src="{{ url_for('static', filename='chat.js') }}?v={{ static_v }}"></script>

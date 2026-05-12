@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Result — AskMyCFO Template Filler</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..800&family=Manrope:wght@300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_v }}">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">▲</span>
+    <span class="brand-name">AskMyCFO</span>
+    <span class="brand-tag">Template Filler</span>
+  </div>
+  <nav>
+    <a href="{{ url_for('home') }}">Upload</a>
+    <a href="{{ url_for('rules_page') }}">Rules</a>
+    <a href="{{ url_for('keywords_page') }}">Keywords</a>
+    <a href="{{ url_for('settings_page') }}">Settings</a>
+  </nav>
+</header>
+
+<main class="container result-page">
+
+  {% if result.error %}
+    <section class="card error-card">
+      <p class="kicker error-kicker">Pipeline failed</p>
+      <h1>Something went wrong</h1>
+      <pre class="mono error-trace">{{ result.error }}</pre>
+      <a href="{{ url_for('home') }}" class="btn-primary">Try another file</a>
+    </section>
+  {% else %}
+
+    <section class="hero">
+      <p class="kicker">Done</p>
+      <h1>{{ result.company }} — template filled</h1>
+      <p class="lede mono">
+        {% if result.fy_label %}{{ result.fy_label }} · {% endif %}
+        {{ (result.sheet_preference or 'standalone').title() }}
+        {% if result.units_label %} · {{ result.units_label }}{% endif %}
+      </p>
+    </section>
+
+    {% if result.last_action %}
+    <section class="card last-action-card" id="lastActionBanner">
+      <div class="last-action-head">
+        <div>
+          <p class="kicker">Last action · {{ result.last_action.ts }}</p>
+          <h2>
+            {% if result.last_action.source == 'manual' %}🧭 Manual mapping
+            {% elif result.last_action.source == 'ai' %}🪄 AI auto-classify
+            {% else %}Action{% endif %}
+          </h2>
+        </div>
+        <button class="btn-ghost-icon" id="dismissLastAction" title="Dismiss">✕</button>
+      </div>
+      <div class="last-action-stats">
+        <div class="stat-tile stat-applied">
+          <strong>{{ result.last_action.applied_count }}</strong>
+          <span>mapping{{ 's' if result.last_action.applied_count != 1 else '' }} applied to CSV</span>
+        </div>
+        <div class="stat-tile stat-resolved">
+          <strong>{{ result.last_action.resolved_count }}</strong>
+          <span>row{{ 's' if result.last_action.resolved_count != 1 else '' }} resolved</span>
+        </div>
+        <div class="stat-tile">
+          <strong>{{ result.last_action.before_count }} → {{ result.last_action.after_count }}</strong>
+          <span>unmatched count</span>
+        </div>
+        <div class="stat-tile">
+          <strong>{{ result.last_action.value_diff_count }}</strong>
+          <span>template value{{ 's' if result.last_action.value_diff_count != 1 else '' }} changed</span>
+        </div>
+      </div>
+      {% if result.manual_fixes and result.manual_fixes[-1].value_diffs %}
+      <details class="last-action-details">
+        <summary>See what changed in the template ({{ result.manual_fixes[-1].value_diffs|length }} field{{ 's' if result.manual_fixes[-1].value_diffs|length != 1 else '' }})</summary>
+        <table class="info-table compact-table">
+          <thead>
+            <tr><th>Template field</th><th class="num">Before CY</th><th class="num">After CY</th><th class="num">Δ CY</th></tr>
+          </thead>
+          <tbody>
+            {% for d in result.manual_fixes[-1].value_diffs %}
+            <tr>
+              <td>{{ d.label }}</td>
+              <td class="num mono">{{ '{:,.2f}'.format(d.before_cur or 0) }}</td>
+              <td class="num mono">{{ '{:,.2f}'.format(d.after_cur or 0) }}</td>
+              <td class="num mono {{ 'pos-delta' if d.delta_cur > 0 else ('neg-delta' if d.delta_cur < 0 else '') }}">
+                {{ '+' if d.delta_cur > 0 else '' }}{{ '{:,.2f}'.format(d.delta_cur or 0) }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </details>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    <section class="card download-card">
+      <h2>Downloads</h2>
+      <div class="download-grid">
+        <a href="{{ url_for('download', job=job, which='filled') }}" class="download-tile primary">
+          <span class="dl-icon">⬇</span>
+          <strong>Filled template</strong>
+          <span class="dl-sub">Input_Templates.xlsx with the values</span>
+        </a>
+        <a href="{{ url_for('download', job=job, which='extracted') }}" class="download-tile">
+          <span class="dl-icon">⬇</span>
+          <strong>Raw extraction</strong>
+          <span class="dl-sub">BS &amp; P&amp;L exactly as in the PDF</span>
+        </a>
+        <a href="{{ url_for('download', job=job, which='trimmed') }}" class="download-tile">
+          <span class="dl-icon">⬇</span>
+          <strong>Trimmed PDF</strong>
+          <span class="dl-sub">Just the BS &amp; P&amp;L pages</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Detected sections</h2>
+      <table class="info-table">
+        <thead>
+          <tr><th>Type</th><th>Variant</th><th>Pages</th><th>Score</th><th>Markers found</th></tr>
+        </thead>
+        <tbody>
+          {% for s in result.sections %}
+          <tr>
+            <td>{{ s.type.replace('_', ' ').title() }}</td>
+            <td>{{ s.variant }}</td>
+            <td class="mono">{% if s.page_end and s.page_end > s.page %}{{ s.page }}–{{ s.page_end }}{% else %}{{ s.page }}{% endif %}</td>
+            <td class="mono">{{ s.score }}</td>
+            <td class="mono small">{{ s.markers|join(', ') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Filled values</h2>
+      <p class="lede">
+        These are the values written into the template. Click a row to see
+        which source line items contributed to it.
+      </p>
+      <table class="info-table values-table">
+        <thead>
+          <tr>
+            <th>Template field</th>
+            <th>Section</th>
+            <th class="num">Current Year</th>
+            <th class="num">Prior Year</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for label, info in cell_map.data_rows.items() %}
+            {% set v = result['values'].get(label, {'cur': 0, 'pri': 0, 'trace': []}) %}
+            <tr class="val-row" data-label="{{ label }}">
+              <td>{{ label }}</td>
+              <td class="small">{{ info.section }}</td>
+              <td class="num mono">{{ '{:,.2f}'.format(v.cur or 0) }}</td>
+              <td class="num mono">{{ '{:,.2f}'.format(v.pri or 0) }}</td>
+            </tr>
+            <tr class="val-trace hidden" id="trace-{{ loop.index }}">
+              <td colspan="4">
+                {% if v.trace %}
+                <ul class="trace-list">
+                  {% for t in v.trace %}
+                  <li>
+                    <span class="op-badge">{{ t.op }}</span>
+                    <strong>{{ t.pattern_name }}</strong>
+                    <span class="mono trace-num">{{ '{:,.2f}'.format(t.matched_cur or 0) }} / {{ '{:,.2f}'.format(t.matched_pri or 0) }}</span>
+                    {% if t.sources %}
+                      <ul class="trace-sources">
+                      {% for s in t.sources %}
+                        <li class="small mono">↳ <em>{{ s.label }}</em> ({{ '{:,.2f}'.format(s.cur or 0) }} / {{ '{:,.2f}'.format(s.pri or 0) }}){% if s.section %} · <span class="trace-section">{{ s.section }}</span>{% endif %}</li>
+                      {% endfor %}
+                      </ul>
+                    {% else %}
+                      <span class="trace-empty">no matching rows</span>
+                    {% endif %}
+                  </li>
+                  {% endfor %}
+                </ul>
+                {% else %}
+                <p class="trace-empty">No rule operands for this field — value is 0.</p>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    {% if result.unmatched %}
+    <section class="card warn-card" id="unmatchedCard" data-job="{{ job }}">
+      <div class="warn-head">
+        <h2>Unmatched rows <span class="count-pill" id="unmatchedCount">{{ result.unmatched|length }}</span></h2>
+        <div class="warn-actions">
+          {% if ai_ready %}
+            <button id="aiSuggestBtn" class="btn-secondary">
+              💡 Suggest mappings with AI
+            </button>
+            <button id="aiFixBtn" class="btn-primary ai-fix-btn">
+              🪄 Auto-classify with {{ ai_model }}
+            </button>
+          {% else %}
+            <p class="hint">
+              <a href="{{ url_for('settings_page') }}">Set up your OpenAI API key</a>
+              to enable AI suggestions.
+            </p>
+          {% endif %}
+        </div>
+      </div>
+      <p class="lede">
+        These rows had values but didn't match any pattern. Pick the right
+        template field from the dropdown on each row, then click
+        <strong>Apply mappings &amp; re-run</strong>. Each mapping you save
+        is appended to your <a href="{{ url_for('keywords_page') }}">CSV dictionary</a>
+        so the next report with the same phrasing won't need fixing.
+      </p>
+
+      <div id="aiStatus" class="status hidden"></div>
+
+      <table class="info-table" id="unmatchedTable">
+        <thead>
+          <tr>
+            <th>Label</th>
+            <th>Section</th>
+            <th class="num">CY</th>
+            <th class="num">PY</th>
+            <th class="map-col">Map to template pattern</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in result.unmatched %}
+          <tr data-label="{{ r.label }}" data-section="{{ r.section or '' }}">
+            <td class="unm-label">{{ r.label }}</td>
+            <td class="small">{{ r.section or '—' }}</td>
+            <td class="num mono">{{ '{:,.2f}'.format(r.cur or 0) }}</td>
+            <td class="num mono">{{ '{:,.2f}'.format(r.pri or 0) }}</td>
+            <td class="map-cell">
+              <select class="map-select" data-pre="">
+                <option value="">— Skip / unmapped —</option>
+                <!-- Options injected by result.js once /api/patterns loads -->
+              </select>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="manual-fix-bar">
+        <span id="mappingSummary" class="hint">No mappings selected.</span>
+        <button id="applyManualBtn" class="btn-primary" disabled>
+          Apply mappings &amp; re-run
+        </button>
+      </div>
+    </section>
+    {% endif %}
+
+    {% if result.manual_fixes %}
+    <section class="card">
+      <h2>Mapping history <span class="count-pill">{{ result.manual_fixes|length }}</span></h2>
+      <p class="lede">Every batch of mappings applied to this job, newest at the bottom.</p>
+      {% for run in result.manual_fixes %}
+      <details class="ai-run-card" {% if loop.last %}open{% endif %}>
+        <summary>
+          <span class="mono">{{ run.ts }}</span> ·
+          <strong>{{ 'AI' if run.source == 'ai' else 'manual' }}</strong> ·
+          applied <strong>{{ run.n_applied }}</strong> ·
+          resolved <strong>{{ run.resolved_count or 0 }}</strong>
+          {% if run.before_unmatched_count is defined %}
+            <span class="run-delta">({{ run.before_unmatched_count }} → {{ run.after_unmatched_count }} unmatched)</span>
+          {% endif %}
+        </summary>
+
+        {% if run.resolved_labels %}
+        <div class="run-resolved">
+          <h3>✓ Resolved {{ run.resolved_labels|length }} row(s)</h3>
+          <ul class="resolved-list">
+            {% for label in run.resolved_labels %}
+            <li class="mono">{{ label }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if run.applied %}
+        <h3>Added to CSV dictionary ({{ run.applied|length }})</h3>
+        <table class="info-table ai-result-table">
+          <thead><tr><th>Label</th><th>Mapped to</th><th>CSV bucket</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for a in run.applied %}
+            <tr>
+              <td>{{ a.label }}</td>
+              <td class="mono">{{ a.pattern_id }}</td>
+              <td class="small mono">{{ a.csv_source|upper }} ▸ {{ a.csv_category }}</td>
+              <td class="small">{% if a.duplicate %}<em>already existed</em>{% else %}new{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+
+        {% if run.value_diffs %}
+        <h3>Template values that changed ({{ run.value_diffs|length }})</h3>
+        <table class="info-table ai-result-table compact-table">
+          <thead><tr><th>Field</th><th class="num">Before CY</th><th class="num">After CY</th><th class="num">Δ CY</th></tr></thead>
+          <tbody>
+            {% for d in run.value_diffs %}
+            <tr>
+              <td>{{ d.label }}</td>
+              <td class="num mono">{{ '{:,.2f}'.format(d.before_cur or 0) }}</td>
+              <td class="num mono">{{ '{:,.2f}'.format(d.after_cur or 0) }}</td>
+              <td class="num mono {{ 'pos-delta' if d.delta_cur > 0 else ('neg-delta' if d.delta_cur < 0 else '') }}">
+                {{ '+' if d.delta_cur > 0 else '' }}{{ '{:,.2f}'.format(d.delta_cur or 0) }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+
+        {% if run.skipped %}
+        <h3>Skipped ({{ run.skipped|length }})</h3>
+        <table class="info-table ai-result-table">
+          <thead><tr><th>Label</th><th>Suggested</th><th>Reason</th></tr></thead>
+          <tbody>
+            {% for s in run.skipped %}
+            <tr>
+              <td>{{ s.label }}</td>
+              <td class="mono">{{ s.pattern_id or '—' }}</td>
+              <td class="small">{{ s.reason }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </details>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if result.ai_runs %}
+    <section class="card">
+      <h2>AI runs <span class="count-pill">{{ result.ai_runs|length }}</span></h2>
+      <p class="lede">Every time OpenAI classified the unmatched rows, the outcome is recorded here.</p>
+      {% for run in result.ai_runs %}
+      <details class="ai-run-card" {% if loop.last %}open{% endif %}>
+        <summary>
+          <span class="mono">{{ run.ts }}</span> ·
+          <strong>{{ run.model }}</strong> ·
+          classified {{ run.n_classified }} ·
+          added {{ run.n_auto_added }} to CSV ·
+          threshold {{ run.threshold }}
+        </summary>
+        {% if run.auto_added %}
+        <h3>Auto-added to CSV ({{ run.auto_added|length }})</h3>
+        <table class="info-table ai-result-table">
+          <thead><tr><th>Label</th><th>Mapped to</th><th>Confidence</th><th>CSV bucket</th><th>Reasoning</th></tr></thead>
+          <tbody>
+            {% for a in run.auto_added %}
+            <tr>
+              <td>{{ a.label }}</td>
+              <td class="mono">{{ a.pattern_id }}</td>
+              <td class="num mono">{{ '{:.2f}'.format(a.confidence or 0) }}</td>
+              <td class="small mono">{{ a.csv_source|upper }} ▸ {{ a.csv_category }}</td>
+              <td class="small">{{ a.reasoning }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+        {% if run.rejected %}
+        <h3>Rejected ({{ run.rejected|length }})</h3>
+        <table class="info-table ai-result-table">
+          <thead><tr><th>Label</th><th>Suggested</th><th>Confidence</th><th>Reason for skipping</th></tr></thead>
+          <tbody>
+            {% for r in run.rejected %}
+            <tr>
+              <td>{{ r.label }}</td>
+              <td class="mono">{{ r.pattern_id or '—' }}</td>
+              <td class="num mono">{{ '{:.2f}'.format(r.confidence or 0) }}</td>
+              <td class="small">
+                {% if r.skip_reason %}{{ r.skip_reason }}
+                {% elif not r.pattern_id %}No good match found.
+                {% else %}Confidence below threshold ({{ run.threshold }}).{% endif %}
+                {% if r.reasoning %} <em class="trace-empty">— {{ r.reasoning }}</em>{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </details>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+  {% endif %}
+
+</main>
+
+<script src="{{ url_for('static', filename='result.js') }}?v={{ static_v }}" data-job="{{ job }}" data-ai-ready="{{ 'true' if ai_ready else 'false' }}"></script>
+{% include '_chat_widget.html' %}
+
+</body>
+</html>
+
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AskMyCFO — Template Filler</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..800&family=Manrope:wght@300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ static_v }}">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">▲</span>
+    <span class="brand-name">AskMyCFO</span>
+    <span class="brand-tag">Template Filler</span>
+  </div>
+  <nav>
+    <a href="{{ url_for('home') }}" class="active">Upload</a>
+    <a href="{{ url_for('rules_page') }}">Rules</a>
+    <a href="{{ url_for('keywords_page') }}">Keywords</a>
+    <a href="{{ url_for('settings_page') }}">Settings</a>
+  </nav>
+</header>
+
+<main class="container">
+
+  <section class="hero">
+    <p class="kicker">Step 1</p>
+    <h1>Upload an annual report.<br>Get the filled template back.</h1>
+    <p class="lede">
+      The pipeline finds the Balance Sheet & P&amp;L pages, extracts the
+      tables, applies your rules, and fills the Input Templates spreadsheet
+      in the units you choose. Unmatched rows can be auto-classified by
+      OpenAI and remembered next time.
+    </p>
+    <div class="stats">
+      <div><strong>{{ n_rules }}</strong><span>rules active</span></div>
+      <div><strong>{{ n_rows }}</strong><span>template fields</span></div>
+      <div><strong>{{ 'AI ✓' if ai_ready else 'AI —' }}</strong>
+           <span>{{ 'configured' if ai_ready else 'not configured' }}</span></div>
+    </div>
+  </section>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for category, msg in messages %}
+          <li class="flash flash-{{ category }}">{{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <section class="card upload-card">
+    <form action="{{ url_for('process') }}" method="post" enctype="multipart/form-data">
+      <div class="field-group">
+        <label for="pdf">Annual report PDF</label>
+        <input type="file" id="pdf" name="pdf" accept="application/pdf" required>
+        <p class="hint">Text-based PDFs only. Scanned-image PDFs need OCR first.</p>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label for="company">Company name <span class="opt">optional</span></label>
+          <input type="text" id="company" name="company" placeholder="e.g. Finolex Cables Limited">
+        </div>
+        <div class="field-group">
+          <label for="fy_label">Financial year label <span class="opt">optional</span></label>
+          <input type="text" id="fy_label" name="fy_label" placeholder="e.g. FY 2024-25">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label>Statement type</label>
+          <div class="seg-control" data-name="sheet_preference">
+            <label class="seg-opt active">
+              <input type="radio" name="sheet_preference" value="standalone" checked>
+              <span>Standalone</span>
+            </label>
+            <label class="seg-opt">
+              <input type="radio" name="sheet_preference" value="consolidated">
+              <span>Consolidated</span>
+            </label>
+            <label class="seg-opt">
+              <input type="radio" name="sheet_preference" value="auto">
+              <span>Auto (prefer Standalone)</span>
+            </label>
+          </div>
+          <p class="hint">Which set of statements to read from. Falls back if the chosen variant isn't in the PDF.</p>
+        </div>
+
+        <div class="field-group">
+          <label for="units">Output units</label>
+          <select id="units" name="units">
+            {% for v, label in unit_options %}
+              <option value="{{ v }}" {% if v == 'lakhs' %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <p class="hint">The PDF is normalised to Lakhs internally; we scale on output.</p>
+        </div>
+      </div>
+
+      <div class="field-group ai-row">
+        <label class="checkbox-row {{ 'disabled' if not ai_ready }}">
+          <input type="checkbox" name="auto_ai" {% if not ai_ready %}disabled{% endif %}>
+          <span>Auto-classify unmatched lines with OpenAI after extraction</span>
+        </label>
+        <p class="hint">
+          {% if ai_ready %}
+            Sends unmatched line-item labels to your configured model and adds
+            high-confidence matches to your CSV dictionary so the same
+            phrasing matches next time. You can also do this manually from
+            the result page.
+          {% else %}
+            Not configured. <a href="{{ url_for('settings_page') }}">Paste an OpenAI API key in Settings</a> to enable.
+          {% endif %}
+        </p>
+      </div>
+
+      <button type="submit" class="btn-primary">Run pipeline →</button>
+    </form>
+  </section>
+
+  <section class="how">
+    <h2>How it works</h2>
+    <ol>
+      <li><strong>Detect.</strong> Scans the PDF, finds the BS &amp; P&amp;L pages using title patterns and number-density scoring. Detects Standalone &amp; Consolidated separately.</li>
+      <li><strong>Trim.</strong> Writes those pages into a small PDF so subsequent steps don't re-scan the whole report.</li>
+      <li><strong>Extract.</strong> Reads each table column-by-column (header-anchored, watermark-stripped) into a plain Excel — values exactly as they appear in the report, normalised to Lakhs.</li>
+      <li><strong>Apply rules.</strong> Walks the extracted rows, matches each one to the closest pattern from your catalog, runs the per-field arithmetic defined in <a href="{{ url_for('rules_page') }}">Rules</a>, and scales to your chosen units.</li>
+      <li><strong>(Optional) AI auto-fix.</strong> Any line item your dictionary doesn't recognise gets sent to OpenAI for classification; high-confidence suggestions are added to your <a href="{{ url_for('keywords_page') }}">CSV dictionary</a> and the pipeline re-runs.</li>
+      <li><strong>Fill template.</strong> Writes the values into your <code>Input_Templates.xlsx</code> at the right rows; totals are Excel formulas so they stay live.</li>
+    </ol>
+  </section>
+
+</main>
+
+<footer>
+  <span>AskMyCFO Simple — v2</span>
+  <span class="mono">Standalone / Consolidated · units selectable · AI fallback</span>
+</footer>
+
+<script>
+  // Segmented control: click any segment, set its radio and toggle .active
+  document.querySelectorAll('.seg-control').forEach(seg => {
+    seg.querySelectorAll('.seg-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        seg.querySelectorAll('.seg-opt').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        opt.querySelector('input[type=radio]').checked = true;
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
