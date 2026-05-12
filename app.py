@@ -990,4 +990,6 @@ if __name__ == "__main__":
     print(f"   Keywords:  http://127.0.0.1:5005/keywords")
     print(f"   Settings:  http://127.0.0.1:5005/settings   (OpenAI api key + model)")
     print("─" * 64)
-    app.run(host="0.0.0.0", port=5005, debug=True)
+    port = int(os.environ.get("PORT", 5005))
+    debug = os.environ.get("FLASK_DEBUG", "0") == "1"
+    app.run(host="0.0.0.0", port=port, debug=debug)
